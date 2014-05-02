@@ -247,9 +247,9 @@ function(build_and_run SubProject RunAll)
   if(DashboardModel STREQUAL "Experimental" OR DashboardModel STREQUAL "Nightly" AND NOT WIN32)
     set(ExtraConfigureArgs "${ExtraConfigureArgs};-DCOVERAGE=ON")
     set(CTEST_COVERAGE_COMMAND /usr/bin/gcov)
-      ctest_coverage()
-      ctest_submit(RETRY_COUNT 3 RETRY_DELAY 5)
+    #ctest_submit(RETRY_COUNT 3 RETRY_DELAY 5)
   endif()
+
   ctest_configure(OPTIONS "${ExtraConfigureArgs}")
   ctest_read_custom_files(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -281,6 +281,8 @@ function(build_and_run SubProject RunAll)
     ctest_test(INCLUDE_LABEL "${SubProject}")
   endif()
 
+  ctest_coverage()
+
   # teardown network with python script if it's Client
   if(${SubProject} STREQUAL "Client")
     execute_process(COMMAND ${CTEST_SOURCE_DIRECTORY}/tools/client_killer.py
@@ -300,7 +302,8 @@ function(build_and_run SubProject RunAll)
   if(RecurringBuildFailureCount LESS 3)
     ctest_submit(RETURN_VALUE ReturnVar)
   endif()
-
+  
+ 
   if(${ReturnVar} EQUAL 0)
     message("Submitted results for ${SubProject}\n-----------------------------------")
   else()
@@ -313,4 +316,5 @@ function(build_and_run SubProject RunAll)
   elseif(FinalSubmodule)
     report_build_result("true")
   endif()
+
 endfunction()
