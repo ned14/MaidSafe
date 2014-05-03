@@ -3,8 +3,6 @@ compiler:
   - gcc
   - clang
 
-git:
-  submodules: false
 
 # whitelist
 branches:
@@ -26,7 +24,6 @@ before_install:
 # Run the Build script
 install:
   - git clone https://github.com/maidsafe/MaidSafe.git
-  - git -C MaidSafe submodule update --init
   - cmake -HMaidSafe -Bbuild_maidsafe -DCMAKE_BUILD_TYPE=Debug
 
 # Run Tests
