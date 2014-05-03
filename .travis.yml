@@ -26,10 +26,11 @@ before_install:
 # Run the Build script
 install:
   - git clone https://github.com/maidsafe/MaidSafe.git
+  - git submodule update --init
   - cmake -HMaidSafe -Bbuild_maidsafe -DCMAKE_BUILD_TYPE=Debug
 
 # Run Tests
 after_script:
-  - cd MaidSafe
+  - cd build_maidsafe
   - cmake .
   - make ExperCommon
