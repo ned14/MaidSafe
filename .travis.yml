@@ -25,7 +25,7 @@ before_install:
 
 # Run the Build script
 install:
-  - git clone git@github.com:maidsafe/MaidSafe
+  - git clone https://github.com/maidsafe/MaidSafe.git
   - git -C MaidSafe submodule update --init
 
 # Run Tests
