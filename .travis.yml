@@ -15,9 +15,9 @@ branches:
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -qq build-essential python-psutil libfuse-dev git-all libicu-dev
-  - wget http://www.cmake.org/files/v2.8/cmake-2.8.12.tar.gz
-  - tar xf cmake-2.8.12.tar.gz
-  - cd cmake-2.8.12
+  - wget http://www.cmake.org/files/v2.8/cmake-2.8.12.2.tar.gz
+  - tar xf cmake-2.8.12.2.tar.gz
+  - cd cmake-2.8.12.2
   - ./bootstrap
   - make
   - sudo make install
