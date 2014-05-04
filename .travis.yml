@@ -22,7 +22,7 @@ before_install:
   - cd ../..
 
 # Run the Build script
-install:
+before_script:
   - cmake -HMaidSafe -Bbuild_maidsafe -DCMAKE_BUILD_TYPE=Debug
 
 # Run Tests
