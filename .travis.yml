@@ -19,7 +19,7 @@ before_install:
   - ./bootstrap
   - make
   - sudo make install
-  - cd ..
+  - cd ../..
 
 # Run the Build script
 install:
