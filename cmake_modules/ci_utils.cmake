@@ -247,7 +247,6 @@ function(build_and_run SubProject RunAll)
   if(DashboardModel STREQUAL "Experimental" OR DashboardModel STREQUAL "Nightly" AND NOT WIN32)
     set(ExtraConfigureArgs "${ExtraConfigureArgs};-DCOVERAGE=ON")
     set(CTEST_COVERAGE_COMMAND /usr/bin/gcov)
-    #ctest_submit(RETRY_COUNT 3 RETRY_DELAY 5)
   endif()
 
   ctest_configure(OPTIONS "${ExtraConfigureArgs}")
