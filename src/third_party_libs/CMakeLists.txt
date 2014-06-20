@@ -1,13 +1,22 @@
 #==================================================================================================#
 #                                                                                                  #
-#  Copyright (c) 2012 MaidSafe.net limited                                                         #
+#  Copyright 2012 MaidSafe.net limited                                                             #
 #                                                                                                  #
-#  The following source code is property of MaidSafe.net limited and is not meant for external     #
-#  use.  The use of this code is governed by the license file licence.txt found in the root        #
-#  directory of this project and also on www.maidsafe.net.                                         #
+#  This MaidSafe Software is licensed to you under (1) the MaidSafe.net Commercial License,        #
+#  version 1.0 or later, or (2) The General Public License (GPL), version 3, depending on which    #
+#  licence you accepted on initial access to the Software (the "Licences").                        #
 #                                                                                                  #
-#  You are not free to copy, amend or otherwise use this source code without the explicit written  #
-#  permission of the board of directors of MaidSafe.net.                                           #
+#  By contributing code to the MaidSafe Software, or to this project generally, you agree to be    #
+#  bound by the terms of the MaidSafe Contributor Agreement, version 1.0, found in the root        #
+#  directory of this project at LICENSE, COPYING and CONTRIBUTOR respectively and also available   #
+#  at: http://www.maidsafe.net/licenses                                                            #
+#                                                                                                  #
+#  Unless required by applicable law or agreed to in writing, the MaidSafe Software distributed    #
+#  under the GPL Licence is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF   #
+#  ANY KIND, either express or implied.                                                            #
+#                                                                                                  #
+#  See the Licences for the specific language governing permissions and limitations relating to    #
+#  use of the MaidSafe Software.                                                                   #
 #                                                                                                  #
 #==================================================================================================#
 
@@ -29,6 +38,7 @@ endif()
 
 
 include(add_boost)
+include(add_sfml)
 add_subdirectory(catch/projects/CMake)
 add_subdirectory(cryptopp)
 add_subdirectory(googlemock)
@@ -41,37 +51,38 @@ if(MaidsafeTesting)
   set(CamelCaseProjectName ThirdParty)
   set(AllExesForCurrentProject cryptest ${AllLeveldbTests} leveldb_benchmark)
   ms_add_project_experimental()
-  add_custom_command(TARGET AllThirdParty
-                       PRE_BUILD
-                       COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory $<TARGET_FILE_DIR:cryptest>/TestData ${CMAKE_CURRENT_BINARY_DIR}/TestData)
-  add_custom_command(TARGET AllThirdParty
-                       PRE_BUILD
-                       COMMAND ${CMAKE_COMMAND} ARGS -E copy_directory $<TARGET_FILE_DIR:cryptest>/TestVectors ${CMAKE_CURRENT_BINARY_DIR}/TestVectors)
-  add_test(NAME "\"CryptoPP full validataion\"" COMMAND cryptest v)
-  set_tests_properties("\"CryptoPP full validataion\"" PROPERTIES TIMEOUT 60 LABELS ThirdParty Behavioural CryptoPP)
-  ms_add_memcheck_ignore("CryptoPP full validataion")
+  set(Timeout 60)
+  ms_update_test_timeout(Timeout)
+  set(Labels ThirdParty Behavioural CryptoPP)
+  add_test(NAME "\"CryptoPP full validation\"" COMMAND cryptest v)
+  set_tests_properties("\"CryptoPP full validation\"" PROPERTIES TIMEOUT ${Timeout} LABELS ${Labels})
+  ms_add_memcheck_ignore("CryptoPP full validation")
   add_test(NAME "\"CryptoPP test vectors for AES\"" COMMAND cryptest tv aes)
-  set_tests_properties("\"CryptoPP test vectors for AES\"" PROPERTIES TIMEOUT 60 LABELS ThirdParty Behavioural CryptoPP)
+  set_tests_properties("\"CryptoPP test vectors for AES\"" PROPERTIES TIMEOUT ${Timeout} LABELS ${Labels})
   ms_add_memcheck_ignore("CryptoPP test vectors for AES")
   add_test(NAME "\"CryptoPP test vectors for SHA\"" COMMAND cryptest tv sha)
-  set_tests_properties("\"CryptoPP test vectors for SHA\"" PROPERTIES TIMEOUT 60 LABELS ThirdParty Behavioural CryptoPP)
+  set_tests_properties("\"CryptoPP test vectors for SHA\"" PROPERTIES TIMEOUT ${Timeout} LABELS ${Labels})
   ms_add_memcheck_ignore("CryptoPP test vectors for SHA")
   add_test(NAME "\"CryptoPP test vectors for RSA-PSS\"" COMMAND cryptest tv rsa_pss)
-  set_tests_properties("\"CryptoPP test vectors for RSA-PSS\"" PROPERTIES TIMEOUT 60 LABELS ThirdParty Behavioural CryptoPP)
+  set_tests_properties("\"CryptoPP test vectors for RSA-PSS\"" PROPERTIES TIMEOUT ${Timeout} LABELS ${Labels})
   ms_add_memcheck_ignore("CryptoPP test vectors for RSA-PSS")
   add_test(NAME "\"CryptoPP test vectors for RSA-OAEP\"" COMMAND cryptest tv rsa_oaep)
-  set_tests_properties("\"CryptoPP test vectors for RSA-OAEP\"" PROPERTIES TIMEOUT 60 LABELS ThirdParty Behavioural CryptoPP)
+  set_tests_properties("\"CryptoPP test vectors for RSA-OAEP\"" PROPERTIES TIMEOUT ${Timeout} LABELS ${Labels})
   ms_add_memcheck_ignore("CryptoPP test vectors for RSA-OAEP")
   add_test(NAME "\"CryptoPP test vectors for RSA-PKCS1 v1.5\"" COMMAND cryptest tv rsa_pkcs1_1_5)
-  set_tests_properties("\"CryptoPP test vectors for RSA-PKCS1 v1.5\"" PROPERTIES TIMEOUT 60 LABELS ThirdParty Behavioural CryptoPP)
+  set_tests_properties("\"CryptoPP test vectors for RSA-PKCS1 v1.5\"" PROPERTIES TIMEOUT ${Timeout} LABELS ${Labels})
   ms_add_memcheck_ignore("CryptoPP test vectors for RSA-PKCS1 v1.5")
 
   foreach(LeveldbTest ${AllLeveldbTests})
     string(REPLACE "test_leveldb_" "LevelDB " TestName ${LeveldbTest})
     add_test(NAME "\"${TestName}\"" COMMAND ${LeveldbTest})
-    set_tests_properties("\"${TestName}\"" PROPERTIES TIMEOUT 60 LABELS ThirdParty Behavioural LevelDB)
+    set_tests_properties("\"${TestName}\"" PROPERTIES TIMEOUT ${Timeout} LABELS ThirdParty Behavioural LevelDB)
     ms_add_memcheck_ignore("${TestName}")
   endforeach()
-  set_tests_properties("\"LevelDB db\"" PROPERTIES TIMEOUT 900)
-  set_tests_properties("\"LevelDB autocompact\"" "\"LevelDB issue178\"" "\"LevelDB table\"" PROPERTIES TIMEOUT 300)
+  set(Timeout 900)
+  ms_update_test_timeout(Timeout)
+  set_tests_properties("\"LevelDB db\"" PROPERTIES TIMEOUT ${Timeout})
+  set(Timeout 300)
+  ms_update_test_timeout(Timeout)
+  set_tests_properties("\"LevelDB autocompact\"" "\"LevelDB issue178\"" "\"LevelDB table\"" PROPERTIES TIMEOUT ${Timeout})
 endif()

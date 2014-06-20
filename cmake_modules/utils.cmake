@@ -31,7 +31,7 @@ include(add_protoc_command)
 # Oddly cmake is fairly limited in standard platform defines
 function(extra_platforms)
   if(UNIX AND NOT APPLE)
-    message("This system is called ${CMAKE_SYSTEM_NAME}.")
+    message(STATUS "This system is called ${CMAKE_SYSTEM_NAME}.")
     if(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
       set(LINUX TRUE PARENT_SCOPE)
     elseif(CMAKE_SYSTEM_NAME MATCHES "kFreeBSD.*")
@@ -164,7 +164,7 @@ endfunction()
 
 # Workaround for the Xcode's missing ability to pass -isystem to the compiler.
 function(ms_target_include_system_dirs Target)
-  if(XCODE)
+  if(XCODE OR (UNIX AND NOT ${CMAKE_VERSION} VERSION_LESS 3.0))
     foreach(Arg ${ARGN})
       string(REGEX MATCH "\\$<" IsGeneratorExpression "${Arg}")
       if("${Arg}" STREQUAL "PRIVATE" OR "${Arg}" STREQUAL "PUBLIC" OR "${Arg}" STREQUAL "INTERFACE")
@@ -179,8 +179,8 @@ function(ms_target_include_system_dirs Target)
     target_include_directories(${Target} SYSTEM ${Scope} ${ARGN})
   endif()
 endfunction()
-                                     
-                                     
+
+
 function(ms_add_style_test)
   if(NOT MaidsafeTesting)
     return()
@@ -201,7 +201,7 @@ function(ms_add_style_test)
 endfunction()
 
 
-# Adds two targets to the current project; AllXXX and ExperXXX where XXX is the project name. 
+# Adds two targets to the current project; AllXXX and ExperXXX where XXX is the project name.
 function(ms_add_project_experimental)
   add_custom_target(All${CamelCaseProjectName} DEPENDS ${AllExesForCurrentProject})
   set_target_properties(All${CamelCaseProjectName} PROPERTIES FOLDER "MaidSafe/All")
@@ -261,7 +261,8 @@ function(ms_rename_outdated_built_exes)
     file(GLOB_RECURSE BuiltExesMinSizeRel RELATIVE ${CMAKE_BINARY_DIR} "${CMAKE_BINARY_DIR}/MinSizeRel/*.exe")
     file(GLOB_RECURSE BuiltExesRelease RELATIVE ${CMAKE_BINARY_DIR} "${CMAKE_BINARY_DIR}/Release/*.exe")
     file(GLOB_RECURSE BuiltExesRelWithDebInfo RELATIVE ${CMAKE_BINARY_DIR} "${CMAKE_BINARY_DIR}/RelWithDebInfo/*.exe")
-    set(BuiltExes ${BuiltExesDebug} ${BuiltExesBuiltExesMinSizeRel} ${BuiltExesRelease} ${BuiltExesRelWithDebInfo})
+    file(GLOB_RECURSE BuiltExesReleaseNoInline RELATIVE ${CMAKE_BINARY_DIR} "${CMAKE_BINARY_DIR}/ReleaseNoInline/*.exe")
+    set(BuiltExes ${BuiltExesDebug} ${BuiltExesBuiltExesMinSizeRel} ${BuiltExesRelease} ${BuiltExesRelWithDebInfo} ${BuiltExesReleaseNoInline})
   else()
     if(APPLE OR BSD)
       execute_process(COMMAND find . -maxdepth 1 -perm +111 -type f
@@ -277,7 +278,9 @@ function(ms_rename_outdated_built_exes)
 
   foreach(BuiltExe ${BuiltExes})
     get_filename_component(BuiltExeNameWe ${BuiltExe} NAME_WE)
-    if(NOT TARGET ${BuiltExeNameWe} AND NOT ${BuiltExeNameWe} MATCHES "CompilerIdC[X]?[X]?$")
+    # Accommodate debug postfix in SFML examples
+    string(REGEX REPLACE "-d$" "" BuiltExeNameWithoutDebugPostfix "${BuiltExeNameWe}")
+    if(NOT TARGET ${BuiltExeNameWe} AND NOT TARGET ${BuiltExeNameWithoutDebugPostfix} AND NOT ${BuiltExeNameWe} MATCHES "CompilerIdC[X]?[X]?$")
       string(REGEX MATCH "build_qt" InQtBuildDir ${BuiltExe})
       string(REGEX MATCH "src/boost" InBoostBuildDir ${BuiltExe})
       string(REGEX MATCH "old/" AlreadyArchived ${BuiltExe})
@@ -595,7 +598,7 @@ function(ms_get_target_architecture)
     #error cmake_ARCH ppc
     #endif
     #endif
-    
+
     #error cmake_ARCH unknown
     ")
     file(WRITE "${CMAKE_BINARY_DIR}/arch.c" "${archdetect_c_code}")
@@ -799,5 +802,27 @@ function(ms_get_todays_temp_folder)
     set(Msg "${Msg}files which are used at build- or run-time, since reconfiguring (running CMake)\n")
     set(Msg "${Msg}might delete them.\n")
     file(WRITE "${CMAKE_BINARY_DIR}/Temp/README.txt" "${Msg}")
+  endif()
+endfunction()
+
+
+# Sets a factor by which all test timeouts are multiplied.  'TimeoutFactor' must be > 1 and need not be an integer.
+function(ms_set_global_test_timeout_factor TimeoutFactor)
+  if(NOT 1 LESS ${TimeoutFactor})
+    message(FATAL_ERROR "'TimeoutFactor' (${TimeoutFactor}) is not > 1")
+  endif()
+  if(GlobalTestTimeoutFactor AND NOT "${TimeoutFactor}" GREATER "${GlobalTestTimeoutFactor}")
+    # We won't decrease the existing factor.
+    return()
+  endif()
+  set(GlobalTestTimeoutFactor ${TimeoutFactor} CACHE INTERNAL "A factor by which all test timeouts are multiplied")
+endfunction()
+
+
+# Applies the global timeout factor if it exists.
+function(ms_update_test_timeout TimeoutVarToBeUpdated)
+  if(GlobalTestTimeoutFactor)
+    math(EXPR NewTimeout ${${TimeoutVarToBeUpdated}}*${GlobalTestTimeoutFactor})
+    set(${TimeoutVarToBeUpdated} ${NewTimeout} PARENT_SCOPE)
   endif()
 endfunction()

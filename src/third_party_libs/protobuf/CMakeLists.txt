@@ -9,6 +9,11 @@ if(HAVE_UNDEFINED_BEHAVIOR_SANITIZER)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-sanitize=undefined")
 endif()
 
+set(CMAKE_DEBUG_POSTFIX -d)
+set(CMAKE_RELWITHDEBINFO_POSTFIX -rwdi)
+set(CMAKE_MINSIZEREL_POSTFIX -msr)
+set(CMAKE_RELEASENOINLINE_POSTFIX -rni)
+
 project(Protobuf)
 
 file(GLOB_RECURSE LIB_PROTBUF_SOURCES "${PROJECT_SOURCE_DIR}/src/google/protobuf/*.cc")
@@ -86,9 +91,8 @@ endif()
 #==================================================================================================#
 # Package                                                                                          #
 #==================================================================================================#
-set(EXPORT_NAME protobuf)
-install(TARGETS protobuf EXPORT ${EXPORT_NAME} ARCHIVE DESTINATION lib)
-set(EXPORT_NAME protoc)
-install(TARGETS protoc EXPORT ${EXPORT_NAME} RUNTIME DESTINATION bin)
+install(TARGETS protobuf COMPONENT Development CONFIGURATIONS Debug Release ARCHIVE DESTINATION lib)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/ COMPONENT Development DESTINATION include/maidsafe/third_party_libs)
 
-install(FILES ${LIB_PROTBUF_HEADERS} DESTINATION include/maidsafe/third_party_libs/protobuf)
+install(TARGETS protoc COMPONENT Tools CONFIGURATIONS Debug RUNTIME DESTINATION bin/debug)
+install(TARGETS protoc COMPONENT Tools CONFIGURATIONS Release RUNTIME DESTINATION bin)

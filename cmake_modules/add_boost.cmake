@@ -194,10 +194,10 @@ set(b2Args <SOURCE_DIR>/b2
            -d+2
            --hash
            )
-if(${CMAKE_BUILD_TYPE} STREQUAL "ReleaseNoInline")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "ReleaseNoInline")
   list(APPEND b2Args cxxflags="${RELEASENOINLINE_FLAGS}")
 endif()
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug2")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "DebugLibStdcxx")
   list(APPEND b2Args define=_GLIBCXX_DEBUG)
 endif()
 
@@ -266,6 +266,7 @@ foreach(Component ${BoostComponents})
                           IMPORTED_LOCATION_MINSIZEREL ${BoostSourceDir}/stage/lib/libboost_${Component}-${CompilerName}-mt-${Version}.lib
                           IMPORTED_LOCATION_RELEASE ${BoostSourceDir}/stage/lib/libboost_${Component}-${CompilerName}-mt-${Version}.lib
                           IMPORTED_LOCATION_RELWITHDEBINFO ${BoostSourceDir}/stage/lib/libboost_${Component}-${CompilerName}-mt-${Version}.lib
+                          IMPORTED_LOCATION_RELEASENOINLINE ${BoostSourceDir}/stage/lib/libboost_${Component}-${CompilerName}-mt-${Version}.lib
                           LINKER_LANGUAGE CXX)
   else()
     set_target_properties(Boost${CamelCaseComponent} PROPERTIES
@@ -369,5 +370,14 @@ add_dependencies(boost_process boost_system)
 #==================================================================================================#
 # Package                                                                                          #
 #==================================================================================================#
-install(DIRECTORY ${BoostSourceDir}/stage/lib DESTINATION .)
-install(DIRECTORY ${BoostSourceDir}/boost DESTINATION include/maidsafe/third_party_libs)
+if(MSVC)
+  foreach(BoostLib BoostChrono BoostDateTime BoostFilesystem BoostLocale BoostProgramOptions BoostRegex BoostSystem BoostThread)
+    get_target_property(Location ${BoostLib} IMPORTED_LOCATION_DEBUG)
+    install(FILES ${Location} COMPONENT Development CONFIGURATIONS Debug DESTINATION lib)
+    get_target_property(Location ${BoostLib} IMPORTED_LOCATION_RELEASE)
+    install(FILES ${Location} COMPONENT Development CONFIGURATIONS Release DESTINATION lib)
+  endforeach()
+else()
+  install(DIRECTORY ${BoostSourceDir}/stage/lib/ COMPONENT Development CONFIGURATIONS Debug Release DESTINATION lib)
+endif()
+install(DIRECTORY ${BoostSourceDir}/boost COMPONENT Development DESTINATION include/maidsafe/third_party_libs)
