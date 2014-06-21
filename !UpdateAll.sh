@@ -5,12 +5,9 @@ git fetch main
 git checkout next
 git merge remotes/origin/next
 git merge remotes/main/next
-git checkout next_ned14
-git merge next
 
 git submodule update --init --recursive
 git submodule foreach git checkout next
-git checkout next
 
 cd src/rudp
 git fetch main
