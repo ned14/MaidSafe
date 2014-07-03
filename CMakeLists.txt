@@ -49,9 +49,13 @@ endif()
 project(maidsafe)
 if(CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_CONFIGURATION_TYPES ${CMAKE_CONFIGURATION_TYPES} ReleaseNoInline CACHE INTERNAL "" FORCE)
-elseif(NOT CMAKE_BUILD_TYPE)
-  message(STATUS "No build type given.  Setting CMAKE_BUILD_TYPE to Debug.")
-  set(CMAKE_BUILD_TYPE Debug)
+else() 
+  if(NOT CMAKE_BUILD_TYPE)
+    message(STATUS "No build type given.  Setting CMAKE_BUILD_TYPE to Debug.")
+    set(CMAKE_BUILD_TYPE Debug)
+  else()
+    message(STATUS "Build type set to ${CMAKE_BUILD_TYPE}")
+  endif()
 endif()
 
 include(CTest)
@@ -177,11 +181,6 @@ if(UNIX)
     message(STATUS "Coverage OFF.  To enable, re-run CMake with -DCOVERAGE=ON")
   endif()
 endif()
-
-message(STATUS "To include all GTests,                   cmake . -DMAIDSAFE_TEST_TYPE=ALL")
-message(STATUS "To include only behavioural GTests,      cmake . -DMAIDSAFE_TEST_TYPE=BEH")
-message(STATUS "To include only functional GTests,       cmake . -DMAIDSAFE_TEST_TYPE=FUNC")
-message("${HR}")
 
 
 # Tidy CTestCustom.cmake
